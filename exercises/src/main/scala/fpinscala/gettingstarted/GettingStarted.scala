@@ -38,9 +38,9 @@ object MyModule {
 
   def fib(n: Int): Int = {
     def fibRec(n: Int, j: Int, k: Int): Int =
-      (n, j) match{
-        case (0, _) => j
-        case (_, _) => fibRec(n-1, k, k+j)
+      n match{
+        case 0 => j
+        case _ => fibRec(n-1, k, k+j)
       }
     fibRec(n, 0, 1)
   }
@@ -147,7 +147,15 @@ object PolymorphicFunctions {
 
   // Exercise 2: Implement a polymorphic function to check whether
   // an `Array[A]` is sorted
-  def isSorted[A](as: Array[A], gt: (A,A) => Boolean): Boolean = ???
+  def isSorted[A](as: Array[A], gt: (A,A) => Boolean): Boolean = {
+    val head = as.head
+    val tailHead = as.tail.head
+    val tail = as.tail
+    as.size match {
+      case (2) => gt(head, tailHead)
+      case _ => {if (!gt(head, tailHead)) false  else isSorted(tail, gt)}
+    }
+  }
 
   // Polymorphic functions are often so constrained by their type
   // that they only have one implementation! Here's an example:
