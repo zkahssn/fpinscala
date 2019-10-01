@@ -1,5 +1,7 @@
 package fpinscala.gettingstarted
 
+import fpinscala.gettingstarted.PolymorphicFunctions.isSorted
+
 // A comment!
 /* Another comment */
 /** A documentation comment */
@@ -79,6 +81,12 @@ object TestFib {
   def main(args: Array[String]): Unit = {
     println("Expected: 0, 1, 1, 2, 3, 5, 8")
     println("Actual:   %d, %d, %d, %d, %d, %d, %d".format(fib(0), fib(1), fib(2), fib(3), fib(4), fib(5), fib(6)))
+    def gt(a: Int, b: Int): Boolean = a < b
+    def ft(a: String, b: String): Boolean = a.length < b.length
+
+    println(isSorted(Array(1,2,3,4,5), gt))
+    println(isSorted(Array("Hey","Hello","Hi","Howdy"),ft))
+
   }
 }
 
@@ -156,6 +164,7 @@ object PolymorphicFunctions {
       case _ => {if (!gt(head, tailHead)) false  else isSorted(tail, gt)}
     }
   }
+
 
   // Polymorphic functions are often so constrained by their type
   // that they only have one implementation! Here's an example:
