@@ -1,5 +1,7 @@
 package fpinscala.datastructures
 
+import fpinscala.datastructures.List.dropWhile
+
 sealed trait List[+A] // `List` data type, parameterized on a type, `A`
 case object Nil extends List[Nothing] // A `List` data constructor representing the empty list
 /* Another data constructor, representing nonempty lists. Note that `tail` is another `List[A]`,
@@ -56,9 +58,15 @@ object List { // `List` companion object. Contains functions for creating and wo
     case Cons(_, t) => t
   }
 
-  def setHead[A](l: List[A], h: A): List[A] = ???
+  def setHead[A](l: List[A], h: A): List[A] = {
+    val tail = List.tail(l)
+    Cons(h, tail)
+  }
 
-  def drop[A](l: List[A], n: Int): List[A] = ???
+  def drop[A](l: List[A], n: Int): List[A] = n match{
+      case 0 => l
+      case _ => drop(List.tail(l), n-1)
+  }
 
   def dropWhile[A](l: List[A], f: A => Boolean): List[A] = ???
 
@@ -69,4 +77,14 @@ object List { // `List` companion object. Contains functions for creating and wo
   def foldLeft[A, B](l: List[A], z: B)(f: (B, A) => B): B = ???
 
   def map[A, B](l: List[A])(f: A => B): List[B] = ???
+}
+
+object main extends App{
+
+  val x = List(1,2,3,4,5,6,7,8)
+  println(x)
+  println(List.tail(x))
+  println(List.setHead(x, 3))
+  println(List.drop(x, 10))
+
 }
