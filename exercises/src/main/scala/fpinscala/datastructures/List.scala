@@ -63,14 +63,21 @@ object List { // `List` companion object. Contains functions for creating and wo
     Cons(h, tail)
   }
 
-  def drop[A](l: List[A], n: Int): List[A] = n match{
-      case 0 => l
-      case _ => drop(List.tail(l), n-1)
+  def drop[A](l: List[A], n: Int): List[A] = n match {
+    case 0 => l
+    case _ => drop(List.tail(l), n - 1)
   }
 
-  def dropWhile[A](l: List[A], f: A => Boolean): List[A] = ???
+  def dropWhile[A](l: List[A], f: A => Boolean): List[A] = l match {
+    case Cons(h, t) if (f(h)) => dropWhile(t, f)
+    case _                    => l
+  }
 
-  def init[A](l: List[A]): List[A] = ???
+  def init[A](l: List[A]): List[A] = l match {
+    case Nil          => List()
+    case Cons(_, Nil) => Nil
+    case Cons(h, t)   => Cons(h, init(t))
+  }
 
   def length[A](l: List[A]): Int = ???
 
@@ -79,12 +86,14 @@ object List { // `List` companion object. Contains functions for creating and wo
   def map[A, B](l: List[A])(f: A => B): List[B] = ???
 }
 
-object main extends App{
+object main extends App {
 
-  val x = List(1,2,3,4,5,6,7,8)
+  val x = List(1, 2, 3, 4, 5, 6, 1, 7, 8)
   println(x)
   println(List.tail(x))
   println(List.setHead(x, 3))
   println(List.drop(x, 10))
+  println(List.dropWhile(x, (x: Int) => x > 1))
+  println(List.init(x))
 
 }
