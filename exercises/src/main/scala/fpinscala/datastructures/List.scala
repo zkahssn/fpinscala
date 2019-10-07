@@ -51,7 +51,7 @@ object List { // `List` companion object. Contains functions for creating and wo
     foldRight(ns, 0)((x, y) => x + y)
 
   def product2(ns: List[Double]) =
-    foldRight(ns, 1.0)(_ * _) // `_ * _` is more concise notation for `(x,y) => x * y`; see sidebar
+    foldRight(ns, 1.0)((x, y) => if (x == 0.0 || y == 0.0) 0.0 else x * y) // `_ * _` is more concise notation for `(x,y) => x * y`; see sidebar
 
   def tail[A](l: List[A]): List[A] = l match {
     case Nil        => Nil
@@ -84,24 +84,13 @@ object List { // `List` companion object. Contains functions for creating and wo
     case Cons(h, t) => 1 + length(t)
   }
 
-  def foldLeft[A, B](l: List[A], z: B)(f: (B, A) => B): B = ???
+  def foldLeft[A, B](l: List[A], z: B)(f: (B, A) => B): B = l match {
+    case Nil         => z
+    case Cons(x, xs) => foldLeft(xs, f(z, x))(f)
+  }
 
   def map[A, B](l: List[A])(f: A => B): List[B] = l match {
     case Nil        => Nil
     case Cons(h, t) => Cons(f(h), map(t)(f))
   }
-}
-
-object main extends App {
-
-  val x = List(1, 2, 3, 4, 5, 6, 1, 7, 8)
-  println(x)
-  println(List.tail(x))
-  println(List.setHead(x, 3))
-  println(List.drop(x, 10))
-  println(List.dropWhile(x, (x: Int) => x > 1))
-  println(List.init(x))
-  println("LIST LENGTH =====>" + List.length(List(1, 2, 3, 4, 5, 6)))
-  println(List.map(List(1, 2, 3, 4, 5, 6))(x => x * 5))
-
 }
