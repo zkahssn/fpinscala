@@ -93,4 +93,25 @@ object List { // `List` companion object. Contains functions for creating and wo
     case Nil        => Nil
     case Cons(h, t) => Cons(f(h), map(t)(f))
   }
+
+  def sum3[A](l: List[Int]): Int = {
+    foldLeft(l, 0)(_ + _)
+  }
+
+  def product3[A](l: List[Int]): Int = {
+    foldLeft(l, 1)((x, y) => x * y)
+  }
+
+  def reverse[A](l: List[A]): List[A] =
+    foldLeft(l, List[A]())((acc, h) => Cons(h, acc))
+
+
+  )
+
+}
+
+object main extends App {
+  println("foldLeft ====>  " + List.sum3(List(1, 2, 3, 4)))
+  println("foldLeft ====>  " + List.product3(List(1, 2, 3, 4)))
+
 }
