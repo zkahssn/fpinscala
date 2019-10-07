@@ -79,11 +79,17 @@ object List { // `List` companion object. Contains functions for creating and wo
     case Cons(h, t)   => Cons(h, init(t))
   }
 
-  def length[A](l: List[A]): Int = ???
+  def length[A](l: List[A]): Int = l match {
+    case Nil        => 0
+    case Cons(h, t) => 1 + length(t)
+  }
 
   def foldLeft[A, B](l: List[A], z: B)(f: (B, A) => B): B = ???
 
-  def map[A, B](l: List[A])(f: A => B): List[B] = ???
+  def map[A, B](l: List[A])(f: A => B): List[B] = l match {
+    case Nil        => Nil
+    case Cons(h, t) => Cons(f(h), map(t)(f))
+  }
 }
 
 object main extends App {
@@ -95,5 +101,7 @@ object main extends App {
   println(List.drop(x, 10))
   println(List.dropWhile(x, (x: Int) => x > 1))
   println(List.init(x))
+  println("LIST LENGTH =====>" + List.length(List(1, 2, 3, 4, 5, 6)))
+  println(List.map(List(1, 2, 3, 4, 5, 6))(x => x * 5))
 
 }
