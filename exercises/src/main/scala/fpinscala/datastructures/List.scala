@@ -105,13 +105,27 @@ object List { // `List` companion object. Contains functions for creating and wo
   def reverse[A](l: List[A]): List[A] =
     foldLeft(l, List[A]())((acc, h) => Cons(h, acc))
 
+  def append1[A](l: List[A], a: A) =
+    foldRight(l, List(a): List[A])(Cons(_, _))
 
-  )
+  def transform(l: List[Int]) = {
+    map(l)(_ + 1)
+  }
 
+  def doubleToString(l: List[Double], n: List[String]): List[String] = {
+    l match {
+      case Nil        => n
+      case Cons(h, t) => doubleToString(t, Cons(h.toString, n))
+    }
+  }
+
+  def doubleToString2(l: List[Double]): List[String] = map(l)(_.toString)
+
+  def filter[A](as: List[A])(f: A => Boolean): List[A] = as match {
+    case Nil                 => as
+    case Cons(h, t) if f(h)  => Cons(h, filter(t)(f))
+    case Cons(h, t) if !f(h) => filter(t)(f)
+  }
 }
 
-object main extends App {
-  println("foldLeft ====>  " + List.sum3(List(1, 2, 3, 4)))
-  println("foldLeft ====>  " + List.product3(List(1, 2, 3, 4)))
-
-}
+object main extends App {}
