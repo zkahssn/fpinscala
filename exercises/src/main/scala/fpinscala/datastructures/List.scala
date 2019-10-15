@@ -126,6 +126,23 @@ object List { // `List` companion object. Contains functions for creating and wo
     case Cons(h, t) if f(h)  => Cons(h, filter(t)(f))
     case Cons(h, t) if !f(h) => filter(t)(f)
   }
+
+  def flatMap[A, B](as: List[A])(f: A => List[B]): List[B] = as match {
+    case Nil => Nil
+    case Cons(h, t) =>
+      f(h) match {
+        case Cons(el, te) => Cons(el, flatMap(t)(f))
+      }
+  }
 }
 
-object main extends App {}
+object main extends App {
+  println(
+    "FLATMAPPING OVER A LIST =======>" +
+      List
+        .flatMap(List(1, 2, 3, 4, 5, 6, 7))(
+          x => Cons(x * 4, Cons(x * 5, Cons(2, Nil)))
+        )
+  )
+
+}
