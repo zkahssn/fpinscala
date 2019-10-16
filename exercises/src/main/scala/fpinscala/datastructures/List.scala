@@ -127,22 +127,38 @@ object List { // `List` companion object. Contains functions for creating and wo
     case Cons(h, t) if !f(h) => filter(t)(f)
   }
 
-  def flatMap[A, B](as: List[A])(f: A => List[B]): List[B] = as match {
+  def flatMapWrong[A, B](as: List[A])(f: A => List[B]): List[B] = as match {
     case Nil => Nil
     case Cons(h, t) =>
       f(h) match {
-        case Cons(el, te) => Cons(el, flatMap(t)(f))
+        case Cons(el, te) => append(f(h), flatMapWrong(t)(f))
       }
   }
+
+  def addTwoLists(l1: List[Int], l2: List[Int]): List[Int] = {
+    (l1, l2) match {
+      case (Cons(h1, t1), Cons(h2, t2)) => Cons(h1 + h2, addTwoLists(t1, t2))
+      case (_, _)                       => Nil
+    }
+  }
+
+  def zipWith[A, B](l1: List[A], l2: List[A])(f: (A, A) => B): List[B] = {
+    (l1, l2) match {
+      case (Cons(h1, t1), Cons(h2, t2)) => Cons(f(h1, h2), zipWith(t1, t2)(f))
+      case (Nil, Nil)                   => Nil
+      case (_, _)                       => Nil
+    }
+  }
+
 }
 
 object main extends App {
-  println(
-    "FLATMAPPING OVER A LIST =======>" +
-      List
-        .flatMap(List(1, 2, 3, 4, 5, 6, 7))(
-          x => Cons(x * 4, Cons(x * 5, Cons(2, Nil)))
-        )
-  )
 
+  val g = (x: String, y: String) => x + y
+  println(
+    "ZIPPING WITH ====>" + List
+      .zipWith(List("Hello", "Hi", "Hey"), List(" 1", " 2", " 3"))(
+        (x: String, y: String) => x + y
+      )
+  )
 }
