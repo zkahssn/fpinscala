@@ -66,6 +66,12 @@ object Option extends App {
   def map2[A, B, C](a: Option[A], b: Option[B])(f: (A, B) => C): Option[C] =
     a.flatMap(ax => b.map(bx => f(ax, bx)))
 
+  def map2For[A, B, C](a: Option[A], b: Option[B])(f: (A, B) => C): Option[C] = for{
+    aa <- a
+    bb <- b
+  }yield f(aa, bb)
+
+
   def lift[A, B](f: A => B): Option[A] => Option[B] = _ map f
 
   def sequence[A](a: List[Option[A]]): Option[List[A]] =
@@ -97,5 +103,4 @@ object Option extends App {
     try Some(a)
     catch { case e: Exception => None }
 
-  println(traverse(List("3", "4", "5", "seven", "9"))(x => toInt(x)))
 }
