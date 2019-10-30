@@ -1,9 +1,10 @@
 package fpinscala.errorhandling
 
+import scala.util.Try
 import scala.{
+  Either => _,
   Option => _,
   Some => _,
-  Either => _,
   _
 } // hide std library `Option`, `Some` and `Either`, since we are writing our own in this chapter
 
@@ -40,7 +41,6 @@ object Option extends App {
 
   Some(3).getOrElse("Hello World")
   None.orElse(Some(1000))
-  println(Some(5).filter(_ > 6))
   def failingFn(i: Int): Int = {
     val y: Int = throw new Exception("fail!") // `val y: Int = ...` declares `y` as having type `Int`, and sets it equal to the right hand side of the `=`.
     try {
@@ -60,13 +60,42 @@ object Option extends App {
     if (xs.isEmpty) None
     else Some(xs.sum / xs.length)
 
-//  math.pow(x - m, 2)
+  def variance(xs: Seq[Double]): Option[Double] =
+    mean(xs) flatMap (m => mean(xs.map(x => math.pow(x - m, 2))))
 
-  def variance(xs: Seq[Double]): Option[Double] = mean(xs) flatMap(m => mean(xs.map(x => math.pow(x-m, 2))))
+  def map2[A, B, C](a: Option[A], b: Option[B])(f: (A, B) => C): Option[C] =
+    a.flatMap(ax => b.map(bx => f(ax, bx)))
 
-  def map2[A, B, C](a: Option[A], b: Option[B])(f: (A, B) => C): Option[C] = ???
+  def lift[A, B](f: A => B): Option[A] => Option[B] = _ map f
 
-  def sequence[A](a: List[Option[A]]): Option[List[A]] = ???
+  def sequence[A](a: List[Option[A]]): Option[List[A]] =
+    a match {
+      case h :: t =>
+        h.flatMap { o =>
+          sequence(t).map(k => o :: k)
+        }
+      case _ => Some(Nil)
+    }
 
-  def traverse[A, B](a: List[A])(f: A => Option[B]): Option[List[B]] = ???
+  def traverse[A, B](a: List[A])(f: A => Option[B]): Option[List[B]] =
+    a match {
+      case h :: t =>
+        f(h) flatMap { o =>
+          traverse(t)(f).map(k => o :: k)
+        }
+      case _ => Some(Nil)
+    }
+
+  println(
+    sequence(List(Some(2), None, Some(3), Some(4), Some(5), Some(7), Some(9)))
+  )
+  def toInt(s: String) = {
+    Try(s.toInt)
+  }
+
+  def Try[A](a: => A): Option[A] =
+    try Some(a)
+    catch { case e: Exception => None }
+
+  println(traverse(List("3", "4", "5", "seven", "9"))(x => toInt(x)))
 }
