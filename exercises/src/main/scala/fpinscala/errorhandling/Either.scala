@@ -1,9 +1,7 @@
 package fpinscala.errorhandling
 
 
-import fpinscala.errorhandling.Option.sequence
-
-import scala.{Either => _, Left => _, Option => _, Right => _, _} // hide std library `Option` and `Either`, since we are writing our own in this chapter
+import scala.{Either => _, Left => _, Option => _, Right => _} // hide std library `Option` and `Either`, since we are writing our own in this chapter
 
 sealed trait Either[+E,+A] {
  def map[B](f: A => B): Either[E, B] = this match {
@@ -26,10 +24,14 @@ sealed trait Either[+E,+A] {
    a <- this
    bb <- b
  } yield f(a, bb)
+
 }
 
 case class Left[+E](get: E) extends Either[E,Nothing]
 case class Right[+A](get: A) extends Either[Nothing,A]
+
+
+
 
 object Either extends App {
 
