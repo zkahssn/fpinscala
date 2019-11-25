@@ -1,7 +1,5 @@
 package fpinscala.laziness
 
-import scala.collection.immutable.Stream._
-
 trait Stream[+A] {
 
   def exists(p: A => Boolean): Boolean =
@@ -64,6 +62,10 @@ trait Stream[+A] {
       (h, t) => if (f(h)) Stream.cons(h, t) else t
     )
 
+  def append[B](second:  => Stream[B])(f: (A, Stream[B]) => Stream[B] ): Stream[B] = {
+      this.foldRight(second : Stream[B])((a, b) => f(a, b))
+  }
+
   def startsWith[B](s: Stream[B]): Boolean = ???
 
   def toList: List[A] = this match {
@@ -94,6 +96,8 @@ object Stream extends App {
 
   def unfold[A, S](z: S)(f: S => Option[(A, S)]): Stream[A] = ???
 
-  val myStream: Stream[Int] = Stream(1, 2, 3, 2, 0, 16, 7, 8, 9)
-  println("mapping " + myStream.filter((x: Int) => x > 3).toList)
+  val myStream: Stream[Int] = Stream(1, 2, 3)
+  val myOtherStream: Stream[Int] = Stream(4, 5, 6)
+
+  println("PRINTING" + myStream.append(myOtherStream)(Stream.cons(_,_)).toList)
 }
