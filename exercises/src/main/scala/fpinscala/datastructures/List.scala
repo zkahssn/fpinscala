@@ -127,13 +127,7 @@ object List { // `List` companion object. Contains functions for creating and wo
     case Cons(h, t) if !f(h) => filter(t)(f)
   }
 
-  def flatMapWrong[A, B](as: List[A])(f: A => List[B]): List[B] = as match {
-    case Nil => Nil
-    case Cons(h, t) =>
-      f(h) match {
-        case Cons(el, te) => append(f(h), flatMapWrong(t)(f))
-      }
-  }
+
 
   def addTwoLists(l1: List[Int], l2: List[Int]): List[Int] = {
     (l1, l2) match {
