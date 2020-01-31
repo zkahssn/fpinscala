@@ -1,11 +1,11 @@
 package fpinscala.state
 
-import fpinscala.state.RNG.Simple
+import fpinscala.state.RNG.{Simple, nonNegativeInt}
 import javafx.beans.property.SimpleObjectProperty
-
 
 trait RNG {
   def nextInt: (Int, RNG) // Should generate a random `Int`. We'll later define other functions in terms of `nextInt`.
+  def getDouble: (Double, RNG)
 }
 
 object RNG {
@@ -19,11 +19,19 @@ object RNG {
       val n = (newSeed >>> 16).toInt // `>>>` is right binary shift with zero fill. The value `n` is our new pseudo-random integer.
       (n, nextRNG) // The return value is a tuple containing both a pseudo-random integer and the next `RNG` state.
     }
+
+    override def getDouble: (Double, RNG) = {
+      val newSeed = (seed * 0x5DEECE66DL + 0xBL) & 0xFFFFFFFFFFFFL // `&` is bitwise AND. We use the current seed to generate a new seed.
+      val nextRNG = Simple(newSeed) // The next state, which is an `RNG` instance created from the new seed.
+      val n = (newSeed >>> 16).toDouble // `>>>` is right binary shift with zero fill. The value `n` is our new pseudo-random integer.
+      (n, nextRNG)
+    }
   }
 
   type Rand[+A] = RNG => (A, RNG)
 
   val int: Rand[Int] = _.nextInt
+  val double: Rand[Double] = _.getDouble
 
   def unit[A](a: A): Rand[A] =
     rng => (a, rng)
@@ -40,12 +48,10 @@ object RNG {
     else (nI, rn)
 
   }
-
-  def double(rng: RNG): (Double, RNG) = {
+  def double1(rng: RNG): (Double, RNG) = {
     val (n, nr) = nonNegativeInt(rng)
     (n / (Int.MaxValue.toDouble + 1), nr)
   }
-
   def intDouble(rng: RNG): ((Int, Double), RNG) = {
     val (n, nr) = rng.nextInt
     val (d, dr) = double(nr)
@@ -75,12 +81,12 @@ object RNG {
     }
   }
 
-
   def map2[A, B, C](ra: Rand[A], rb: Rand[B])(f: (A, B) => C): Rand[C] = ???
 
   def sequence[A](fs: List[Rand[A]]): Rand[List[A]] = ???
 
   def flatMap[A, B](f: Rand[A])(g: A => Rand[B]): Rand[B] = ???
+
 }
 
 case class State[S, +A](run: S => (A, S)) {
@@ -107,12 +113,6 @@ object State extends App {
 
   def simulateMachine(inputs: List[Input]): State[Machine, (Int, Int)] = ???
 
-  val (num, rn2): (Int, RNG) = Simple(45).nextInt
-
-  val test: (Int, RNG) = RNG.nonNegativeInt(rn2)
-  println("NON NEGATIVE 2 => " + test)
-
-  println("NON NEGATIVE 3=> " + RNG.ints(10)(rn2))
-
-
+  val getRandDouble = RNG.double(Simple(10))
+  println(s"GOT THIS RANDOM DOUBLE ${getRandDouble._1}")
 }
