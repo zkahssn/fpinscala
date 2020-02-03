@@ -1,6 +1,6 @@
 package fpinscala.state
 
-import fpinscala.state.RNG.{Simple, nonNegativeInt}
+import fpinscala.state.RNG.{Simple, nonNegativeInt, storage}
 import javafx.beans.property.SimpleObjectProperty
 
 trait RNG {
@@ -30,8 +30,14 @@ object RNG {
 
   type Rand[+A] = RNG => (A, RNG)
 
-  val int: Rand[Int] = _.nextInt
-  val double: Rand[Double] = _.getDouble
+  type testType = Int => Unit
+  type storage = List[Int] => List[Double]
+
+  val int: Rand[Int] = x => x.nextInt
+  val double: Rand[Double] = y => y.getDouble
+
+  val ok: testType = Int => println("This works")
+  val checkingThis: storage = _.map(_.toDouble)
 
   def unit[A](a: A): Rand[A] =
     rng => (a, rng)
@@ -113,6 +119,18 @@ object State extends App {
 
   def simulateMachine(inputs: List[Input]): State[Machine, (Int, Int)] = ???
 
-  val getRandDouble = RNG.double(Simple(10))
-  println(s"GOT THIS RANDOM DOUBLE ${getRandDouble._1}")
+  //check stuff
+  val firstCheck: storage = RNG.checkingThis
+  val secondCheck: Seq[Double] = firstCheck(List(12, 12, 3, 12, 3))
+
+  val getRandDouble: RNG.Rand[Double] = RNG.double
+  val tryAgain: (Double, RNG) = getRandDouble(Simple(10))
+  val tryThat = tryAgain._1
+  println(s"GOT THIS RANDOM DOUBLE $tryThat")
+
+  val useUnit: RNG.Rand[Double] = RNG.unit(20.4)
+  val randomUnit: (Double, RNG) = useUnit(Simple(12))
+  val getTheVal = randomUnit._1
+  println(s"GETTING THE VAL ===> $getTheVal")
+
 }
