@@ -1,6 +1,6 @@
 package fpinscala.state
 
-import fpinscala.state.RNG.{Simple, nonNegativeInt, storage}
+import fpinscala.state.RNG.{Simple, map2, nonNegativeInt, storage}
 import javafx.beans.property.SimpleObjectProperty
 
 trait RNG {
@@ -34,19 +34,13 @@ object RNG {
   type storage = List[Int] => List[Double]
 
   val int: Rand[Int] = x => x.nextInt
-  val double: Rand[Double] = y => y.getDouble
+  val doubleAlias: Rand[Double] = y => y.getDouble
 
   val ok: testType = Int => println("This works")
   val checkingThis: storage = _.map(_.toDouble)
 
   def unit[A](a: A): Rand[A] =
     rng => (a, rng)
-
-  def map[A, B](s: Rand[A])(f: A => B): Rand[B] =
-    rng => {
-      val (a, rng2) = s(rng)
-      (f(a), rng2)
-    }
 
   def nonNegativeInt(rng: RNG): (Int, RNG) = {
     val (nI, rn) = rng.nextInt
@@ -58,11 +52,6 @@ object RNG {
     val (n, nr) = nonNegativeInt(rng)
     (n / (Int.MaxValue.toDouble + 1), nr)
   }
-  def intDouble(rng: RNG): ((Int, Double), RNG) = {
-    val (n, nr) = rng.nextInt
-    val (d, dr) = double(nr)
-    ((n, d), dr)
-  }
 
   def doubleInt(rng: RNG): ((Double, Int), RNG) = {
     val ((i, d), ir) = intDouble(rng)
@@ -70,9 +59,9 @@ object RNG {
   }
 
   def double3(rng: RNG): ((Double, Double, Double), RNG) = {
-    val db1 = double(rng)
-    val db2 = double(db1._2)
-    val db3 = double(db2._2)
+    val db1 = doubleAlias(rng)
+    val db2 = doubleAlias(db1._2)
+    val db3 = doubleAlias(db2._2)
     ((db1._1, db2._1, db3._1), db3._2)
   }
 
@@ -87,7 +76,35 @@ object RNG {
     }
   }
 
-  def map2[A, B, C](ra: Rand[A], rb: Rand[B])(f: (A, B) => C): Rand[C] = ???
+  def doubleMap(rng: Rand[Int]): Rand[Double] = map(rng)(_.toDouble)
+
+  def intDoubleMap(rng: Rand[Int], rng2: Rand[Double]): Rand[(Int, Double)] = {
+    map2(rng, rng2)((x, y) => (x, y))
+  }
+  def doubleIntMap(rng: Rand[Double], rng2: Rand[Int]): Rand[(Double, Int)] = {
+    map2(rng, rng2)((x, y) => (x, y))
+  }
+
+  def intDouble(rng: RNG): ((Int, Double), RNG) = {
+    val (n, nr) = rng.nextInt
+    val (d, dr) = doubleAlias(nr)
+    ((n, d), dr)
+  }
+
+  def map[A, B](s: Rand[A])(f: A => B): Rand[B] =
+    rng => {
+      val (a, rng2) = s(rng)
+      (f(a), rng2)
+    }
+
+  def map2[A, B, C](ra: Rand[A], rb: Rand[B])(f: (A, B) => C): Rand[C] = {
+    rng =>
+      {
+        val (a, rng1) = ra(rng)
+        val (b, rng2) = rb(rng1)
+        (f(a, b), rng2)
+      }
+  }
 
   def sequence[A](fs: List[Rand[A]]): Rand[List[A]] = ???
 
@@ -123,14 +140,30 @@ object State extends App {
   val firstCheck: storage = RNG.checkingThis
   val secondCheck: Seq[Double] = firstCheck(List(12, 12, 3, 12, 3))
 
-  val getRandDouble: RNG.Rand[Double] = RNG.double
+  val getRandDouble: RNG.Rand[Double] = RNG.doubleAlias
   val tryAgain: (Double, RNG) = getRandDouble(Simple(10))
   val tryThat = tryAgain._1
-  println(s"GOT THIS RANDOM DOUBLE $tryThat")
 
+  println(s"GOT THIS RANDOM DOUBLE $tryThat")
   val useUnit: RNG.Rand[Double] = RNG.unit(20.4)
   val randomUnit: (Double, RNG) = useUnit(Simple(12))
   val getTheVal = randomUnit._1
   println(s"GETTING THE VAL ===> $getTheVal")
 
+  println(s"USING RANDOM ====>")
+  val useMap: RNG.Rand[String] = RNG.map(RNG.int)(x => x.toString)
+  val usingMap: (String, RNG) = useMap(Simple(21))
+  val getMapVal = usingMap._1
+  println(s"RANDOM NUMBER TO STRING $getMapVal")
+
+  println(s"doubleMap ====>")
+  val doubleMap: RNG.Rand[Double] = RNG.doubleMap(RNG.int)
+  val doubleMapVal: (Double, RNG) = doubleMap(Simple(109))
+  println(s"RANDOM NUMBER TO STRING ${doubleMapVal._1}")
+
+  println("intDoubleMap ====>")
+  val intDoubleMap: RNG.Rand[(Int, Double)] =
+    RNG.intDoubleMap(RNG.int, RNG.doubleAlias)
+  val intDoubleMapVal: ((Int, Double), RNG) = intDoubleMap(Simple(21323))
+  println(s"RANDOM DOUBLE COMBINATOR ${intDoubleMapVal._1}")
 }
