@@ -105,8 +105,32 @@ object RNG {
         (f(a, b), rng2)
       }
   }
-
-  def sequence[A](fs: List[Rand[A]]): Rand[List[A]] = ???
+  def sequence[A](fs: List[Rand[A]]): Rand[List[A]] = { rng =>
+    def processList(latestRange: RNG, fs: List[Rand[A]], newList: List[A]) = {
+      fs match {
+        case h :: tail => {
+          val newRange1: (A, RNG) = h(latestRange);
+          processList(newRange1._2, tail, List(newRange1._1))
+        }
+        case h :: Nil => {
+          val newRange2: (A, RNG) = h(latestRange);
+          processList(newRange2._2, Nil, List(newRange2._1))
+        }
+        case Nil => (newList, latestRange)
+      }
+    }
+    val head: (A, RNG) = fs.head(rng)
+    val body = fs.tail
+    val combined = body.zipWithIndex.map {
+      case (ra, idx) =>
+        if (idx == 0) {
+          ra(head._2)
+        } else {
+          ra(rng)
+        }
+    }
+    (combined.map(f => f._1), rng)
+  }
 
   def flatMap[A, B](f: Rand[A])(g: A => Rand[B]): Rand[B] = ???
 
@@ -166,4 +190,10 @@ object State extends App {
     RNG.intDoubleMap(RNG.int, RNG.doubleAlias)
   val intDoubleMapVal: ((Int, Double), RNG) = intDoubleMap(Simple(21323))
   println(s"RANDOM DOUBLE COMBINATOR ${intDoubleMapVal._1}")
+
+  println("usingSequence ====>")
+  val calSequence: RNG.Rand[List[Int]] =
+    RNG.sequence(List(RNG.int, RNG.int, RNG.int))
+  val sequenced: (List[Int], RNG) = calSequence(Simple(123))
+  println(s"RANDOM SEQUENCE COMBINATOR ${sequenced._1}")
 }
