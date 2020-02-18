@@ -1,7 +1,6 @@
 package fpinscala.state
 
 import fpinscala.state.RNG.{Simple, map2, nonNegativeInt, storage}
-import javafx.beans.property.SimpleObjectProperty
 
 trait RNG {
   def nextInt: (Int, RNG) // Should generate a random `Int`. We'll later define other functions in terms of `nextInt`.
@@ -105,31 +104,28 @@ object RNG {
         (f(a, b), rng2)
       }
   }
-  def sequence[A](fs: List[Rand[A]]): Rand[List[A]] = { rng =>
-    def processList(latestRange: RNG, fs: List[Rand[A]], newList: List[A]) = {
-      fs match {
-        case h :: tail => {
-          val newRange1: (A, RNG) = h(latestRange);
-          processList(newRange1._2, tail, List(newRange1._1))
-        }
-        case h :: Nil => {
-          val newRange2: (A, RNG) = h(latestRange);
-          processList(newRange2._2, Nil, List(newRange2._1))
-        }
-        case Nil => (newList, latestRange)
+  def processList[A](latestRange: RNG,
+                     fs: List[Rand[A]],
+                     newList: List[A]): (List[A], RNG) = {
+
+    fs match {
+      case h :: tail => {
+        val newRange1: (A, RNG) = h(latestRange);
+        processList[A](newRange1._2, tail, newRange1._1)
       }
+      case h :: Nil => {
+        val newRange2: (A, RNG) = h(latestRange);
+        processList[A](newRange2._2, Nil, newList(newRange2._1))
+      }
+      case Nil => (newList, latestRange)
     }
-    val head: (A, RNG) = fs.head(rng)
-    val body = fs.tail
-    val combined = body.zipWithIndex.map {
-      case (ra, idx) =>
-        if (idx == 0) {
-          ra(head._2)
-        } else {
-          ra(rng)
-        }
-    }
-    (combined.map(f => f._1), rng)
+  }
+
+  def sequence[A](fs: List[Rand[A]]): Rand[List[A]] = { rng =>
+    fs.foldLeft(fs.head(rng)) { case (r1, r2) => map2(r1._2, r2) }
+
+    val newVals = processList(rng, fs, List())
+    newVals
   }
 
   def flatMap[A, B](f: Rand[A])(g: A => Rand[B]): Rand[B] = ???
